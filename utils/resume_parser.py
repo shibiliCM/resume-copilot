@@ -39,6 +39,17 @@ ACTION_KEYWORDS = (
     "achieved",
 )
 
+COMMON_EMAIL_DOMAINS = {
+    "gmail.com",
+    "yahoo.com",
+    "outlook.com",
+    "hotmail.com",
+    "icloud.com",
+    "proton.me",
+    "protonmail.com",
+    "live.com",
+}
+
 
 def _read_pdf_text(pdf_bytes: bytes | BinaryIO) -> str:
     text_parts: list[str] = []
@@ -128,6 +139,22 @@ def _extract_experience_years(text: str) -> float:
     return max(values) if values else 0.0
 
 
+def _extract_portfolio(text: str, email: str | None) -> str | None:
+    email_domain = email.split("@", 1)[1].lower() if email and "@" in email else ""
+    candidates = re.findall(
+        r"(?:https?://)?(?:www\.)?(?!(?:linkedin|github)\.com\b)[A-Za-z0-9][A-Za-z0-9_-]*\.(?:com|net|org|io|dev|me|app)(?:/[^\s)\]]*)?",
+        text,
+        re.IGNORECASE,
+    )
+    for candidate in candidates:
+        cleaned = candidate.strip(" .,:;)")
+        domain = re.sub(r"^https?://", "", cleaned, flags=re.IGNORECASE).removeprefix("www.").split("/", 1)[0].lower()
+        if domain == email_domain or domain in COMMON_EMAIL_DOMAINS:
+            continue
+        return cleaned
+    return None
+
+
 def parse_resume(pdf_bytes: bytes | BinaryIO) -> dict[str, Any]:
     text = _read_pdf_text(pdf_bytes)
     text_lower = text.lower()
@@ -136,10 +163,7 @@ def parse_resume(pdf_bytes: bytes | BinaryIO) -> dict[str, Any]:
     phone = _first_match(r"(?:\+\d{1,3}[\s.-]?)?(?:\(?\d{2,4}\)?[\s.-]?){2,5}\d{2,4}", text)
     linkedin = _first_match(r"(?:https?://)?(?:www\.)?linkedin\.com/in/[A-Za-z0-9_%\-./]+", text)
     github = _first_match(r"(?:https?://)?(?:www\.)?github\.com/[A-Za-z0-9_.%-]+", text)
-    portfolio = _first_match(
-        r"(?:https?://)?(?:www\.)?(?!(?:linkedin|github)\.com\b)[A-Za-z0-9][A-Za-z0-9_-]*\.(?:com|net|org|io|dev|me|app)(?:/[^\s)]*)?",
-        text,
-    )
+    portfolio = _extract_portfolio(text, email)
 
     sections = sum(
         1

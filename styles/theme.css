@@ -3,6 +3,8 @@
   --card: #1a1f2e;
   --text: #fff;
   --accent: #00c9a7;
+  --accent2: #4da6ff;
+  --warn: #ffd166;
 }
 
 [data-theme="light"],
@@ -11,6 +13,8 @@
   --card: #fff;
   --text: #1a1a2e;
   --accent: #00c9a7;
+  --accent2: #2578c7;
+  --warn: #a56a00;
 }
 
 body,
@@ -46,20 +50,28 @@ div {
 }
 
 .careerai-chat-shell {
-  height: 560px;
+  height: 460px;
   overflow-y: auto;
-  padding: 14px;
-  border: 1px solid rgba(128, 128, 128, 0.18);
-  border-radius: 14px;
-  background: rgba(128, 128, 128, 0.06);
+  padding: 22px;
+  border: 1px solid rgba(94, 255, 216, 0.16);
+  border-radius: 18px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.018)),
+    radial-gradient(circle at 12% 0%, rgba(94, 255, 216, 0.08), transparent 34%),
+    radial-gradient(circle at 90% 20%, rgba(77, 166, 255, 0.08), transparent 30%),
+    rgba(7, 14, 27, 0.74);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 18px 55px rgba(0, 0, 0, 0.24);
 }
 
 .careerai-bubble-row {
   display: flex;
-  margin: 10px 0;
+  align-items: flex-end;
+  gap: 10px;
+  margin: 14px 0;
 }
 
 .careerai-bubble-row.user {
+  flex-direction: row-reverse;
   justify-content: flex-end;
 }
 
@@ -68,25 +80,184 @@ div {
 }
 
 .careerai-bubble {
-  max-width: 78%;
-  padding: 11px 13px;
-  border-radius: 14px;
-  line-height: 1.55;
+  max-width: min(760px, 78%);
+  padding: 13px 15px;
+  border-radius: 16px;
+  line-height: 1.6;
   font-size: 14px;
   white-space: pre-wrap;
 }
 
 .careerai-bubble.user {
-  background: var(--accent);
+  background: linear-gradient(135deg, var(--accent), #00a7d8);
   color: #fff;
-  border-bottom-right-radius: 5px;
+  border-bottom-right-radius: 6px;
+  box-shadow: 0 14px 32px rgba(0, 201, 167, 0.18);
 }
 
 .careerai-bubble.assistant {
-  background: var(--card);
+  background: rgba(26, 31, 46, 0.92);
   color: var(--text);
-  border: 1px solid rgba(128, 128, 128, 0.18);
-  border-bottom-left-radius: 5px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom-left-radius: 6px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18);
+}
+
+.careerai-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 34px;
+  font-family: 'Syne', sans-serif;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .03em;
+}
+
+.careerai-avatar.assistant {
+  color: var(--accent);
+  background: rgba(94, 255, 216, 0.08);
+  border: 1px solid rgba(94, 255, 216, 0.2);
+}
+
+.careerai-avatar.user {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.10);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+.careerai-chat-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 22px 24px;
+  margin-bottom: 14px;
+  border-radius: 20px;
+  border: 1px solid rgba(94, 255, 216, 0.16);
+  background:
+    radial-gradient(circle at 95% 5%, rgba(77, 166, 255, 0.18), transparent 30%),
+    linear-gradient(135deg, rgba(94, 255, 216, 0.08), rgba(167, 139, 250, 0.045));
+}
+
+.careerai-chat-hero h2 {
+  margin: 0;
+  font-size: 30px;
+  line-height: 1.1;
+}
+
+.careerai-chat-hero p {
+  margin: 8px 0 0;
+  max-width: 720px;
+  color: rgba(235, 246, 255, 0.58) !important;
+}
+
+.careerai-kicker {
+  margin-bottom: 8px;
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+}
+
+.careerai-provider-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.055);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  color: var(--text);
+  white-space: nowrap;
+  font-weight: 800;
+}
+
+.careerai-provider-pill span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 12px var(--accent);
+}
+
+.careerai-provider-pill.none span {
+  background: var(--warn);
+  box-shadow: 0 0 12px var(--warn);
+}
+
+.careerai-chat-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.careerai-chat-metric {
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.careerai-chat-metric span {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: rgba(235, 246, 255, 0.42);
+}
+
+.careerai-chat-metric strong {
+  color: var(--text);
+  font-size: 17px;
+}
+
+.careerai-empty-chat {
+  min-height: 290px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: rgba(235, 246, 255, 0.62);
+}
+
+.careerai-empty-chat h3 {
+  margin: 12px 0 6px;
+  font-size: 22px;
+}
+
+.careerai-empty-chat p {
+  max-width: 480px;
+  margin: 0;
+  color: rgba(235, 246, 255, 0.45) !important;
+}
+
+.careerai-empty-orbit {
+  width: 58px;
+  height: 58px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent);
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  background: rgba(94, 255, 216, 0.08);
+  border: 1px solid rgba(94, 255, 216, 0.22);
+  box-shadow: 0 0 32px rgba(94, 255, 216, 0.12);
+}
+
+.careerai-typing {
+  opacity: .6;
+  margin-left: 6px;
+  color: var(--accent);
 }
 
 .careerai-score-badge {
@@ -99,4 +270,273 @@ div {
   background: rgba(0, 201, 167, 0.14);
   color: var(--accent);
   font-weight: 800;
+}
+
+.careerai-report-hero,
+.careerai-interview-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 22px 24px;
+  margin-bottom: 16px;
+  border-radius: 20px;
+  border: 1px solid rgba(94, 255, 216, 0.16);
+  background:
+    radial-gradient(circle at 94% 12%, rgba(77, 166, 255, 0.16), transparent 30%),
+    linear-gradient(135deg, rgba(94, 255, 216, 0.08), rgba(167, 139, 250, 0.045));
+}
+
+.careerai-report-hero h2,
+.careerai-interview-hero h2 {
+  margin: 0;
+  font-size: 30px;
+  line-height: 1.1;
+}
+
+.careerai-report-hero p,
+.careerai-interview-hero p {
+  margin: 8px 0 0;
+  max-width: 760px;
+  color: rgba(235, 246, 255, 0.58) !important;
+}
+
+.careerai-score-orb {
+  width: 92px;
+  height: 92px;
+  border-radius: 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent);
+  background: rgba(94, 255, 216, 0.08);
+  border: 1px solid rgba(94, 255, 216, 0.22);
+  box-shadow: 0 0 34px rgba(94, 255, 216, 0.10);
+}
+
+.careerai-score-orb strong {
+  font-size: 26px;
+  line-height: 1;
+}
+
+.careerai-score-orb span {
+  margin-top: 4px;
+  opacity: .7;
+}
+
+.careerai-panel {
+  padding: 18px;
+  margin-bottom: 16px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.075);
+  box-shadow: 0 16px 42px rgba(0, 0, 0, 0.18);
+}
+
+.careerai-panel h3 {
+  margin: 0 0 14px;
+  font-size: 18px;
+}
+
+.careerai-panel p {
+  margin: 12px 0 0;
+  color: rgba(235, 246, 255, 0.48) !important;
+}
+
+.careerai-breakdown-row,
+.careerai-check-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.careerai-breakdown-row:last-child,
+.careerai-check-row:last-child {
+  border-bottom: 0;
+}
+
+.careerai-breakdown-row span {
+  color: rgba(235, 246, 255, 0.58);
+}
+
+.careerai-breakdown-row strong {
+  color: var(--accent);
+}
+
+.careerai-link-grid {
+  display: grid;
+  gap: 9px;
+}
+
+.careerai-link-card {
+  display: block;
+  padding: 11px 12px;
+  border-radius: 13px;
+  text-decoration: none;
+  background: rgba(94, 255, 216, 0.06);
+  border: 1px solid rgba(94, 255, 216, 0.14);
+}
+
+.careerai-link-card:hover {
+  border-color: rgba(94, 255, 216, 0.34);
+  background: rgba(94, 255, 216, 0.10);
+}
+
+.careerai-link-card span {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 10px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: rgba(235, 246, 255, 0.44);
+}
+
+.careerai-link-card strong {
+  color: var(--accent);
+  word-break: break-word;
+}
+
+.careerai-link-card.missing {
+  background: rgba(255, 107, 122, 0.06);
+  border-color: rgba(255, 107, 122, 0.12);
+}
+
+.careerai-link-card.missing strong,
+.careerai-check-row.missing span {
+  color: #ff6b7a;
+}
+
+.careerai-check-row {
+  justify-content: flex-start;
+}
+
+.careerai-check-row span {
+  min-width: 34px;
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--accent);
+}
+
+.careerai-interview-stats {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.careerai-interview-stats div {
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.careerai-interview-stats span {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: rgba(235, 246, 255, 0.42);
+}
+
+.careerai-interview-stats strong {
+  color: var(--text);
+  font-size: 17px;
+}
+
+.careerai-setup-panel {
+  margin-bottom: 14px;
+}
+
+.careerai-question-card {
+  padding: 20px;
+  margin: 14px 0;
+  border-radius: 18px;
+  background:
+    linear-gradient(135deg, rgba(94, 255, 216, 0.07), rgba(77, 166, 255, 0.04)),
+    rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(94, 255, 216, 0.14);
+}
+
+.careerai-question-card h3 {
+  margin: 10px 0 8px;
+  font-size: 20px;
+}
+
+.careerai-question-card p {
+  margin: 0;
+  color: rgba(235, 246, 255, 0.48) !important;
+}
+
+.careerai-question-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.careerai-question-meta span,
+.careerai-question-meta strong {
+  padding: 6px 9px;
+  border-radius: 999px;
+  font-size: 11px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.careerai-question-meta span {
+  color: var(--accent);
+  font-weight: 800;
+}
+
+.careerai-report-score {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 18px;
+  margin-bottom: 14px;
+  border-radius: 16px;
+  background: rgba(94, 255, 216, 0.08);
+  border: 1px solid rgba(94, 255, 216, 0.16);
+}
+
+.careerai-report-score span {
+  font-size: 11px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: rgba(235, 246, 255, 0.56);
+}
+
+.careerai-report-score strong {
+  color: var(--accent);
+  font-size: 26px;
+}
+
+@media (max-width: 900px) {
+  .careerai-chat-hero {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .careerai-chat-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .careerai-bubble {
+    max-width: 88%;
+  }
+
+  .careerai-report-hero,
+  .careerai-interview-hero {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .careerai-interview-stats {
+    grid-template-columns: 1fr;
+  }
 }

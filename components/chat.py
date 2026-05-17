@@ -6,7 +6,7 @@ from typing import Any
 
 import streamlit as st
 
-from utils.llm import stream_complete
+from utils.llm import active_provider, stream_complete
 
 
 STARTER_CHIPS = [
@@ -15,6 +15,14 @@ STARTER_CHIPS = [
     "What skills am I missing?",
     "Review my ATS score",
 ]
+
+
+PROVIDER_LABELS = {
+    "chatgpt": "ChatGPT",
+    "gemini": "Gemini",
+    "anthropic": "Anthropic",
+    "none": "No key",
+}
 
 
 def _system_prompt(resume_data: dict[str, Any]) -> str:
@@ -27,9 +35,11 @@ def _system_prompt(resume_data: dict[str, Any]) -> str:
 
 def _render_message(role: str, content: str) -> None:
     safe_content = html.escape(content).replace("\n", "<br>")
+    avatar = "YOU" if role == "user" else "CA"
     st.markdown(
         f"""
         <div class="careerai-bubble-row {role}">
+          <div class="careerai-avatar {role}">{avatar}</div>
           <div class="careerai-bubble {role}">{safe_content}</div>
         </div>
         """,
@@ -59,41 +69,83 @@ def _assistant_response(system_prompt: str) -> str:
             placeholder.markdown(
                 f"""
                 <div class="careerai-bubble-row assistant">
-                  <div class="careerai-bubble assistant">{rendered}<span style="opacity:.55;margin-left:6px;">{frame}</span></div>
+                  <div class="careerai-avatar assistant">CA</div>
+                  <div class="careerai-bubble assistant">{rendered}<span class="careerai-typing">{frame}</span></div>
                 </div>
                 """,
                 unsafe_allow_html=True,
             )
     except Exception as exc:
-        chunks = [f"Could not reach the AI service: {exc}"]
+        chunks = [f"{exc}"]
 
     final_text = "".join(chunks).strip()
     placeholder.empty()
     return final_text
 
 
+def _metric(label: str, value: Any) -> str:
+    return f"""
+    <div class="careerai-chat-metric">
+      <span>{html.escape(label)}</span>
+      <strong>{html.escape(str(value))}</strong>
+    </div>
+    """
+
+
 def render_chat(resume_data: dict[str, Any]) -> None:
+    if "chat_history" not in st.session_state:
+        st.session_state["chat_history"] = []
+
+    provider = active_provider()
+    provider_label = PROVIDER_LABELS.get(provider, provider.title())
+    skill_count = len(resume_data.get("skills", []) or [])
+    gap_count = len(resume_data.get("skill_gaps", []) or [])
+    ats_score = resume_data.get("ats_score", "-")
+    role = resume_data.get("predicted_role") or "Resume"
+
     st.markdown(
-        """
-        <div class="fade-up" style="margin-bottom:1.5rem;">
-          <h2 style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--text);margin:0 0 6px;">
-            💬 Resume Chat Assistant
-          </h2>
+        f"""
+        <section class="careerai-chat-hero">
+          <div>
+            <div class="careerai-kicker">Resume copilot</div>
+            <h2>Chat with CareerAI</h2>
+            <p>Ask for sharper bullets, missing skills, job-fit strategy, and ATS fixes based on this resume.</p>
+          </div>
+          <div class="careerai-provider-pill {provider}">
+            <span></span>{html.escape(provider_label)}
+          </div>
+        </section>
+        <div class="careerai-chat-metrics">
+          {_metric("Role", role)}
+          {_metric("ATS", f"{ats_score}/100" if isinstance(ats_score, (int, float)) else ats_score)}
+          {_metric("Skills", skill_count)}
+          {_metric("Gaps", gap_count)}
         </div>
         """,
         unsafe_allow_html=True,
     )
 
-    if "chat_history" not in st.session_state:
-        st.session_state["chat_history"] = []
-
+    st.markdown('<div class="careerai-chip-row">', unsafe_allow_html=True)
     cols = st.columns(len(STARTER_CHIPS))
     for col, chip in zip(cols, STARTER_CHIPS):
         if col.button(chip, use_container_width=True):
             _append_user_message(chip)
             st.rerun()
+    st.markdown("</div>", unsafe_allow_html=True)
 
     st.markdown('<div class="careerai-chat-shell">', unsafe_allow_html=True)
+    if not st.session_state["chat_history"]:
+        st.markdown(
+            """
+            <div class="careerai-empty-chat">
+              <div class="careerai-empty-orbit">CA</div>
+              <h3>Ready when you are</h3>
+              <p>Start with a suggested prompt, or ask for a rewrite, role plan, skill roadmap, or ATS diagnosis.</p>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
     for message in st.session_state["chat_history"]:
         _render_message(message["role"], message["content"])
 
@@ -105,8 +157,12 @@ def render_chat(resume_data: dict[str, Any]) -> None:
     st.markdown("</div>", unsafe_allow_html=True)
 
     with st.form("careerai_chat_form", clear_on_submit=True):
-        input_col, send_col = st.columns([6, 1])
-        prompt = input_col.text_input("Message", label_visibility="collapsed", placeholder="Ask a question about your resume...")
+        input_col, send_col = st.columns([7, 1.2])
+        prompt = input_col.text_input(
+            "Message",
+            label_visibility="collapsed",
+            placeholder="Ask for resume rewrites, job matches, missing skills, or ATS fixes...",
+        )
         submitted = send_col.form_submit_button("Send", use_container_width=True)
         if submitted and prompt.strip():
             _append_user_message(prompt.strip())

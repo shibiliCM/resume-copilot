@@ -1,29 +1,43 @@
 from __future__ import annotations
 
+import html
+import re
 from typing import Any
 
 import streamlit as st
 
 
-def _as_url(value: str | None, scheme: str = "https://") -> str | None:
+def _as_url(value: str | None, kind: str = "url") -> str | None:
     if not value:
         return None
     value = value.strip()
-    if value.startswith(("http://", "https://", "mailto:", "tel:")):
-        return value
-    return f"{scheme}{value}"
-
-
-def _link_line(label: str, value: str | None, kind: str = "url") -> str:
-    if not value:
-        return f"- **{label}:** ❌"
     if kind == "email":
-        href = _as_url(value, "mailto:")
-    elif kind == "phone":
-        href = _as_url(value, "tel:")
-    else:
-        href = _as_url(value)
-    return f"- **{label}:** [{value}]({href})"
+        return f"mailto:{value}"
+    if kind == "phone":
+        digits = re.sub(r"[^\d+]", "", value)
+        return f"tel:{digits}" if digits else None
+    if value.startswith(("http://", "https://")):
+        return value
+    return f"https://{value}"
+
+
+def _link_card(label: str, value: str | None, kind: str = "url") -> str:
+    href = _as_url(value, kind)
+    if not value or not href:
+        return f"""
+        <div class="careerai-link-card missing">
+          <span>{html.escape(label)}</span>
+          <strong>Missing</strong>
+        </div>
+        """
+    safe_value = html.escape(value)
+    safe_href = html.escape(href, quote=True)
+    return f"""
+    <a class="careerai-link-card" href="{safe_href}" target="_blank" rel="noopener noreferrer">
+      <span>{html.escape(label)}</span>
+      <strong>{safe_value}</strong>
+    </a>
+    """
 
 
 def calculate_ats_score(resume_data: dict[str, Any], tech_skills: list[str]) -> dict[str, Any]:
@@ -47,8 +61,7 @@ def calculate_ats_score(resume_data: dict[str, Any], tech_skills: list[str]) -> 
     skill_coverage = min(skills_found / 15, 1) * 30
     formatting = (checks_passed / total_checks) * 20 if total_checks else 0
     certs_bonus = min(certs * 5, 15)
-    cert_deduction = 0
-    final_score = min(keyword_match + skill_coverage + formatting - cert_deduction + certs_bonus, 100)
+    final_score = min(keyword_match + skill_coverage + formatting + certs_bonus, 100)
 
     return {
         "score": final_score,
@@ -56,7 +69,6 @@ def calculate_ats_score(resume_data: dict[str, Any], tech_skills: list[str]) -> 
         "skill_coverage": skill_coverage,
         "formatting": formatting,
         "certs_bonus": certs_bonus,
-        "cert_deduction": cert_deduction,
         "checks": checks,
         "checks_passed": checks_passed,
         "total_checks": total_checks,
@@ -71,15 +83,18 @@ def render_ats_report(resume_data: dict[str, Any], tech_skills: list[str]) -> No
     certifications = resume_data.get("certifications", []) or []
 
     st.markdown(
-        """
-        <div class="fade-up" style="margin-bottom:1.5rem;">
-          <h2 style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--text);margin:0 0 6px;">
-            ATS Report
-          </h2>
-          <p style="font-size:13px;color:rgba(128,128,128,0.8);">
-            Clickable contact links, certification signals, and a transparent scoring breakdown.
-          </p>
-        </div>
+        f"""
+        <section class="careerai-report-hero">
+          <div>
+            <div class="careerai-kicker">ATS diagnostics</div>
+            <h2>ATS Report</h2>
+            <p>Clickable contact links, certification signals, and a transparent scoring breakdown.</p>
+          </div>
+          <div class="careerai-score-orb">
+            <strong>{score['score']:.1f}</strong>
+            <span>/100</span>
+          </div>
+        </section>
         """,
         unsafe_allow_html=True,
     )
@@ -87,37 +102,49 @@ def render_ats_report(resume_data: dict[str, Any], tech_skills: list[str]) -> No
     col_score, col_links = st.columns([1, 1.25])
 
     with col_score:
-        st.markdown(f"### Final ATS Score: **{score['score']:.1f}/100**")
-        st.write(f"- **Keyword Match:** {score['keyword_match']:.1f}/40 ({score['keywords_found']} found)")
-        st.write(f"- **Skill Coverage:** {score['skill_coverage']:.1f}/30 ({score['skills_found']} skills)")
-        st.write(f"- **Formatting:** {score['formatting']:.1f}/20 ({score['checks_passed']}/{score['total_checks']} checks)")
-        st.write(f"- **Certificate Bonus:** +{score['certs_bonus']:.1f}/15 ({score['certs']} found)")
+        st.markdown(
+            f"""
+            <div class="careerai-panel">
+              <h3>Score Breakdown</h3>
+              <div class="careerai-breakdown-row"><span>Keyword Match</span><strong>{score['keyword_match']:.1f}/40</strong></div>
+              <div class="careerai-breakdown-row"><span>Skill Coverage</span><strong>{score['skill_coverage']:.1f}/30</strong></div>
+              <div class="careerai-breakdown-row"><span>Formatting</span><strong>{score['formatting']:.1f}/20</strong></div>
+              <div class="careerai-breakdown-row"><span>Certificate Bonus</span><strong>+{score['certs_bonus']:.1f}/15</strong></div>
+              <p>{score['keywords_found']} action keywords, {score['skills_found']} skills, {score['checks_passed']}/{score['total_checks']} checks passed.</p>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
 
     with col_links:
-        st.markdown("### Clickable Links Extracted")
         st.markdown(
-            "\n".join(
-                [
-                    _link_line("Email", resume_data.get("email"), "email"),
-                    _link_line("Phone", resume_data.get("phone"), "phone"),
-                    _link_line("LinkedIn", resume_data.get("linkedin")),
-                    _link_line("GitHub", resume_data.get("github")),
-                    _link_line("Portfolio", resume_data.get("portfolio")),
-                ]
-            )
+            f"""
+            <div class="careerai-panel">
+              <h3>Clickable Links</h3>
+              <div class="careerai-link-grid">
+                {_link_card("Email", resume_data.get("email"), "email")}
+                {_link_card("Phone", resume_data.get("phone"), "phone")}
+                {_link_card("LinkedIn", resume_data.get("linkedin"))}
+                {_link_card("GitHub", resume_data.get("github"))}
+                {_link_card("Portfolio", resume_data.get("portfolio"))}
+              </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
         )
 
     col_checks, col_certs = st.columns(2)
 
     with col_checks:
-        st.markdown("### ATS Checklist")
-        for label, passed in score["checks"]:
-            st.write(f"{'✅' if passed else '❌'} {label}")
+        rows = "".join(
+            f"<div class='careerai-check-row {'ok' if passed else 'missing'}'><span>{'OK' if passed else 'NO'}</span>{html.escape(label)}</div>"
+            for label, passed in score["checks"]
+        )
+        st.markdown(f"<div class='careerai-panel'><h3>ATS Checklist</h3>{rows}</div>", unsafe_allow_html=True)
 
     with col_certs:
-        st.markdown("### Certificates")
         if certifications:
-            for index, cert in enumerate(certifications, 1):
-                st.write(f"{index}. {cert}")
+            cert_rows = "".join(f"<li>{html.escape(cert)}</li>" for cert in certifications)
         else:
-            st.write("No certificate lines found.")
+            cert_rows = "<li>No certificate lines found.</li>"
+        st.markdown(f"<div class='careerai-panel'><h3>Certificates</h3><ol>{cert_rows}</ol></div>", unsafe_allow_html=True)

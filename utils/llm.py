@@ -82,7 +82,7 @@ def _chatgpt_complete(messages: list[dict[str, str]], system: str) -> str:
         return data["choices"][0]["message"]["content"].strip()
     except urllib.error.HTTPError as exc:
         details = exc.read().decode("utf-8", errors="ignore")
-        raise RuntimeError(f"ChatGPT/OpenAI API error {exc.code}: {details or exc.reason}") from exc
+        raise RuntimeError(_friendly_api_error("ChatGPT/OpenAI", exc.code, details or exc.reason)) from exc
     except urllib.error.URLError as exc:
         raise RuntimeError(f"Could not reach ChatGPT/OpenAI endpoint: {exc.reason}") from exc
 
@@ -104,7 +104,7 @@ def _chatgpt_stream(messages: list[dict[str, str]], system: str) -> Generator[st
                     yield text
     except urllib.error.HTTPError as exc:
         details = exc.read().decode("utf-8", errors="ignore")
-        raise RuntimeError(f"ChatGPT/OpenAI API error {exc.code}: {details or exc.reason}") from exc
+        raise RuntimeError(_friendly_api_error("ChatGPT/OpenAI", exc.code, details or exc.reason)) from exc
     except urllib.error.URLError as exc:
         raise RuntimeError(f"Could not reach ChatGPT/OpenAI endpoint: {exc.reason}") from exc
 
@@ -141,7 +141,7 @@ def _gemini_complete(messages: list[dict[str, str]], system: str) -> str:
         return "\n".join(part.get("text", "") for part in parts).strip()
     except urllib.error.HTTPError as exc:
         details = exc.read().decode("utf-8", errors="ignore")
-        raise RuntimeError(f"Gemini API error {exc.code}: {details or exc.reason}") from exc
+        raise RuntimeError(_friendly_api_error("Gemini", exc.code, details or exc.reason)) from exc
     except urllib.error.URLError as exc:
         raise RuntimeError(f"Could not reach Gemini API: {exc.reason}") from exc
 
@@ -190,3 +190,18 @@ def stream_complete(messages: list[dict[str, str]], system: str) -> Generator[st
         yield from _anthropic_stream(messages, system)
     else:
         raise RuntimeError("Add OPENAI_API_KEY or GEMINI_API_KEY in Streamlit secrets or environment.")
+
+
+def _friendly_api_error(provider: str, code: int, details: str) -> str:
+    lowered = str(details).lower()
+    if "reported as leaked" in lowered or "api key was reported as leaked" in lowered:
+        return (
+            f"{provider} rejected this API key because it has been reported as leaked. "
+            "Revoke it, create a new key, put the new key in .streamlit/secrets.toml, then restart Streamlit."
+        )
+    if code in {401, 403}:
+        return (
+            f"{provider} rejected the configured key with HTTP {code}. "
+            "Check that the key is active, unrestricted for this API, and saved in .streamlit/secrets.toml."
+        )
+    return f"{provider} API error {code}: {details}"
