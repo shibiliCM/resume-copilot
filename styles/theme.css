@@ -1,0 +1,102 @@
+:root {
+  --bg: #0e1117;
+  --card: #1a1f2e;
+  --text: #fff;
+  --accent: #00c9a7;
+}
+
+[data-theme="light"],
+[data-careerai-theme="light"] {
+  --bg: #f5f7fa;
+  --card: #fff;
+  --text: #1a1a2e;
+  --accent: #00c9a7;
+}
+
+body,
+.stApp,
+[data-testid="stAppViewContainer"],
+[data-testid="stSidebar"],
+[data-testid="stMain"],
+[data-testid="stMainBlockContainer"] {
+  background-color: var(--bg) !important;
+  color: var(--text) !important;
+}
+
+.xcard,
+.ai-panel,
+.careerai-card,
+[data-testid="stChatMessage"] {
+  background: var(--card) !important;
+  color: var(--text) !important;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+label,
+span,
+li,
+div {
+  color: inherit;
+}
+
+.careerai-chat-shell {
+  height: 560px;
+  overflow-y: auto;
+  padding: 14px;
+  border: 1px solid rgba(128, 128, 128, 0.18);
+  border-radius: 14px;
+  background: rgba(128, 128, 128, 0.06);
+}
+
+.careerai-bubble-row {
+  display: flex;
+  margin: 10px 0;
+}
+
+.careerai-bubble-row.user {
+  justify-content: flex-end;
+}
+
+.careerai-bubble-row.assistant {
+  justify-content: flex-start;
+}
+
+.careerai-bubble {
+  max-width: 78%;
+  padding: 11px 13px;
+  border-radius: 14px;
+  line-height: 1.55;
+  font-size: 14px;
+  white-space: pre-wrap;
+}
+
+.careerai-bubble.user {
+  background: var(--accent);
+  color: #fff;
+  border-bottom-right-radius: 5px;
+}
+
+.careerai-bubble.assistant {
+  background: var(--card);
+  color: var(--text);
+  border: 1px solid rgba(128, 128, 128, 0.18);
+  border-bottom-left-radius: 5px;
+}
+
+.careerai-score-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 54px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(0, 201, 167, 0.14);
+  color: var(--accent);
+  font-weight: 800;
+}

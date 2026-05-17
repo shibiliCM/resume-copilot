@@ -1,4 +1,4 @@
-﻿"""
+"""
 CareerAI - Resume Intelligence Platform
 Features:
   - Animated aurora + particle canvas background
@@ -20,6 +20,12 @@ from sklearn.metrics import accuracy_score, confusion_matrix, precision_recall_f
 from sklearn.model_selection import train_test_split
 from sklearn.naive_bayes import MultinomialNB
 import pdfplumber
+
+from utils.resume_parser import parse_resume
+from utils.theme import inject_theme
+from components.ats_report import render_ats_report
+from components.chat import render_chat
+from components.mock_interview import render_mock_interview
 
 # ------------------------------------------------------------------------------------------------
 # PAGE CONFIG
@@ -1003,31 +1009,37 @@ def ats_full(text):
     }
 
 def ats_score_breakdown(tech, ats):
-    keyword_score = min(ats["kw_hits"] / 10, 1.0) * 100
-    skill_score = min(len(tech) / 12, 1.0) * 100
+    keywords_found = int(ats.get("kw_hits", ats.get("action_keywords", 0)) or 0)
+    skills_found = len(tech)
+    certs_found = int(ats.get("cert_hits", len(ats.get("certifications", []))) or 0)
     format_checks = [
-        {"label": "Email present", "points": 10, "passed": ats["has_email"]},
-        {"label": "Phone present", "points": 10, "passed": ats["has_phone"]},
-        {"label": "LinkedIn present", "points": 8, "passed": ats["has_linkedin"]},
-        {"label": "GitHub / portfolio present", "points": 7, "passed": ats["has_github"]},
-        {"label": "Resume length 300-1000 words", "points": 15, "passed": ats["length_ok"]},
-        {"label": "At least 3 resume sections", "points": 20, "passed": ats["sections"] >= 3},
-        {"label": "At least 5 bullet points", "points": 15, "passed": ats["bullets"] >= 5},
-        {"label": "Certification signal present", "points": 15, "passed": ats["cert_hits"] > 0},
+        {"label": "Email present", "passed": ats.get("has_email", bool(ats.get("email")))},
+        {"label": "Phone present", "passed": ats.get("has_phone", bool(ats.get("phone")))},
+        {"label": "LinkedIn present", "passed": ats.get("has_linkedin", bool(ats.get("linkedin")))},
+        {"label": "GitHub / portfolio present", "passed": ats.get("has_github", bool(ats.get("github") or ats.get("portfolio")))},
+        {"label": "Resume length 300-1000 words", "passed": ats.get("length_ok", 300 <= ats.get("word_count", 0) <= 1000)},
+        {"label": "At least 3 resume sections", "passed": ats.get("sections", 0) >= 3},
+        {"label": "At least 5 bullet points", "passed": ats.get("bullets", ats.get("bullet_count", 0)) >= 5},
     ]
-    possible_format = sum(item["points"] for item in format_checks)
-    earned_format = sum(item["points"] for item in format_checks if item["passed"])
-    formatting_score = (earned_format / possible_format) * 100 if possible_format else 0
+    checks_passed = sum(1 for item in format_checks if item["passed"])
+    total_checks = len(format_checks)
+    keyword_match = min(keywords_found / 10, 1) * 40
+    skill_coverage = min(skills_found / 15, 1) * 30
+    formatting = (checks_passed / total_checks) * 20 if total_checks else 0
+    certs_bonus = min(certs_found * 5, 15)
+    cert_deduction = 0
     components = [
-        {"name": "Keyword match", "weight": 40, "raw": keyword_score, "weighted": keyword_score * 0.40,
-         "evidence": f"{ats['kw_hits']} action/ATS keywords found"},
-        {"name": "Skill coverage", "weight": 30, "raw": skill_score, "weighted": skill_score * 0.30,
-         "evidence": f"{len(tech)} technical skills detected"},
-        {"name": "Formatting rules", "weight": 30, "raw": formatting_score, "weighted": formatting_score * 0.30,
-         "evidence": f"{earned_format}/{possible_format} formatting points earned"},
+        {"name": "Keyword match", "weight": 40, "raw": min(keywords_found / 10, 1) * 100, "weighted": keyword_match,
+         "evidence": f"{keywords_found} action/ATS keywords found"},
+        {"name": "Skill coverage", "weight": 30, "raw": min(skills_found / 15, 1) * 100, "weighted": skill_coverage,
+         "evidence": f"{skills_found} technical skills detected"},
+        {"name": "Formatting rules", "weight": 20, "raw": (checks_passed / total_checks) * 100 if total_checks else 0, "weighted": formatting,
+         "evidence": f"{checks_passed}/{total_checks} formatting checks passed"},
+        {"name": "Certificate bonus", "weight": 15, "raw": min(certs_found / 3, 1) * 100, "weighted": certs_bonus,
+         "evidence": f"{certs_found} certificate signals found"},
     ]
     return {
-        "score": round(min(sum(item["weighted"] for item in components), 100), 1),
+        "score": round(min(keyword_match + skill_coverage + formatting - cert_deduction + certs_bonus, 100), 1),
         "components": components,
         "format_checks": format_checks,
     }
@@ -1036,7 +1048,9 @@ def compute_scores(tech, soft, max_match, ats, w=(35,35,20,10)):
     sw,mw,aw,sow=w
     sk=min(len(tech)/12,1.0)*100; sf=min(len(soft)/6,1.0)*100
     at=ats_score_breakdown(tech, ats)["score"]
-    total=sk*sw/100+max_match*mw/100+at*aw/100+sf*sow/100
+    weight_sum=max(sw+mw+aw+sow,1)
+    total=(sk*sw+max_match*mw+at*aw+sf*sow)/weight_sum
+    total=max(0,min(total,100))
     return {"overall":round(total,1),"skills":round(sk,1),"soft":round(sf,1),"ats":round(at,1),"match":round(max_match,1)}
 
 def role_fit_recommendations(all_found, prediction, target_role_key="", limit=5):
@@ -1645,9 +1659,12 @@ with st.sidebar:
       <div style="font-size:10px;color:rgba(255,255,255,0.2);letter-spacing:.12em;">RESUME INTELLIGENCE</div>
     </div>""", unsafe_allow_html=True)
 
-    theme_mode = st.selectbox("Theme", ["Dark Mode", "Day Mode"], label_visibility="collapsed")
+    if "theme" not in st.session_state:
+        st.session_state.theme = "dark"
+    if st.button("🌙/☀️ Toggle Theme", use_container_width=True):
+        st.session_state.theme = "light" if st.session_state.theme == "dark" else "dark"
 
-    page = st.radio("", ["Dashboard","AI Coaches","Job Matches","Skill Analysis","ATS Report","Insights"], label_visibility="collapsed")
+    page = st.radio("", ["Dashboard","AI Coaches","Job Matches","Skill Analysis","ATS Report", "💬 Chat Assistant", "🎤 Mock Interview", "Insights"], label_visibility="collapsed")
 
     st.markdown("<br>", unsafe_allow_html=True)
 
@@ -1688,90 +1705,8 @@ with st.sidebar:
       </div>
     </div>""", unsafe_allow_html=True)
 
-if theme_mode == "Day Mode":
-    st.markdown("""
-    <style>
-    :root{
-      --bg:#eef7f8;
-      --bg2:#e4f0f2;
-      --bg3:#dbeaec;
-      --card:rgba(255,255,255,0.78);
-      --border:rgba(11,35,45,0.10);
-      --border2:rgba(0,156,140,0.18);
-      --text:rgba(15,33,42,0.92);
-      --muted:rgba(44,65,76,0.62);
-      --teal:#00a893;
-      --blue:#2578c7;
-      --amber:#a56a00;
-      --red:#c14355;
-      --violet:#7257c9;
-      --glow-teal:rgba(0,168,147,0.13);
-      --glow-blue:rgba(37,120,199,0.11);
-    }
-    html,body,.stApp,[data-testid="stAppViewContainer"],[data-testid="stMain"],[data-testid="stMainBlockContainer"],.main,.main .block-container{
-      background:#eef7f8 !important;
-      background-color:#eef7f8 !important;
-      color:var(--text) !important;
-    }
-    .stApp{
-      background-image:
-        radial-gradient(ellipse 80% 40% at 90% 0%,rgba(0,168,147,0.12),transparent),
-        radial-gradient(ellipse 60% 50% at 5% 95%,rgba(37,120,199,0.10),transparent) !important;
-    }
-    [data-testid="stHeader"]{
-      background:rgba(238,247,248,0.92) !important;
-      border-bottom:1px solid rgba(11,35,45,0.08) !important;
-    }
-    section[data-testid="stSidebar"]{
-      background:linear-gradient(175deg,#eaf5f7 0%,#dcecef 100%) !important;
-      border-right:1px solid rgba(11,35,45,0.08) !important;
-    }
-    .xcard,.ai-panel{
-      background:rgba(255,255,255,0.74) !important;
-      border-color:rgba(11,35,45,0.10) !important;
-      box-shadow:0 14px 42px rgba(31,76,92,0.10) !important;
-    }
-    [data-testid="stFileUploaderDropzone"],
-    input,textarea,[data-baseweb="select"] > div{
-      background:rgba(255,255,255,0.78) !important;
-      color:var(--text) !important;
-      border-color:rgba(11,35,45,0.10) !important;
-    }
-    h1,h2,h3,h4,h5,h6,p,span,label,li,strong,
-    div[data-testid="stMarkdownContainer"],div[data-testid="stMarkdownContainer"] p{
-      color:var(--text) !important;
-    }
-    [style*="color:#fff"],[style*="color: #fff"],[style*="color:#ffffff"],[style*="color:rgba(255,255,255"]{
-      color:var(--text) !important;
-    }
-    [style*="background:rgba(255,255,255"]{
-      background:rgba(11,35,45,0.055) !important;
-    }
-    .brand-core,.orbit-dot{
-      color:var(--teal) !important;
-    }
-    .role-orb,.job-badge{
-      background:rgba(255,255,255,0.62) !important;
-      border-color:rgba(11,35,45,0.08) !important;
-    }
-    </style>
-    """, unsafe_allow_html=True)
-else:
-    st.markdown("""
-    <style>
-    :root{
-      --bg:#060e1c;--bg2:#0b1526;--bg3:#0f1d38;
-      --card:rgba(10,18,34,0.82);
-      --border:rgba(255,255,255,0.07);
-      --border2:rgba(94,255,216,0.18);
-      --text:rgba(235,246,255,0.86);
-      --muted:rgba(190,205,220,0.38);
-      --teal:#5effd8;--blue:#4da6ff;--amber:#ffd166;--red:#ff6b7a;--violet:#a78bfa;
-      --glow-teal:rgba(94,255,216,0.18);
-      --glow-blue:rgba(77,166,255,0.15);
-    }
-    </style>
-    """, unsafe_allow_html=True)
+inject_theme(st.session_state.theme)
+
 
 # ------------------------------------------------------------------------------------------------
 # HERO
@@ -1819,15 +1754,29 @@ if uploaded_file is None:
 model, vectorizer, jobs_df = load_models()
 
 with st.spinner("Analysing resumeâ€¦"):
-    resume_text = extract_text(uploaded_file)
+    resume_data = parse_resume(uploaded_file)
+    resume_text = resume_data["text"]
     if not resume_text.strip():
         st.error("Could not extract text from PDF. Try a text-based PDF.")
         st.stop()
 
     cleaned = clean_text(resume_text)
     tech_skills, soft_skills = extract_skills(resume_text)
+    resume_data["skills"] = tech_skills + soft_skills
     all_found = tech_skills + soft_skills
-    ats = ats_full(resume_text)
+    ats = {
+        **resume_data,
+        "kw_hits": resume_data.get("action_keywords", 0),
+        "has_email": bool(resume_data.get("email")),
+        "has_phone": bool(resume_data.get("phone")),
+        "has_linkedin": bool(resume_data.get("linkedin")),
+        "has_github": bool(resume_data.get("github")) or bool(resume_data.get("portfolio")),
+        "length_ok": 300 < resume_data.get("word_count", 0) < 1000,
+        "sections": resume_data.get("sections", 0),
+        "bullets": resume_data.get("bullet_count", 0),
+        "bullet_count": resume_data.get("bullet_count", 0),
+        "cert_hits": len(resume_data.get("certifications", []))
+    }
 
     prediction="Data Scientist"; confidence=82.0
     top_jobs=pd.DataFrame(); max_match=68.0
@@ -2270,58 +2219,49 @@ elif "Skill Analysis" in page:
 # ATS REPORT
 # ------------------------------------------------------------------------------------------------
 elif "ATS Report" in page:
-    ats_breakdown = ats_score_breakdown(tech_skills, ats)
-    ac,bc=st.columns([1,1.6])
-    with ac:
-        oc=score_color(scores["ats"])
-        st.html(xcard(f"""
-        <div style="text-align:center;padding:.5rem 0 1rem;">
-          <div style="font-size:10px;color:rgba(255,255,255,0.3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px;">ATS Score</div>
-          <div style="animation:pulseGlow 3s infinite;display:inline-block;">{svg_ring(scores['ats'],110,9,oc)}</div>
-          <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:{oc};margin-top:10px;">{"Excellent" if scores['ats']>=80 else "Good" if scores['ats']>=60 else "Needs work"}</div>
-        </div>
-        <hr style="border-color:rgba(255,255,255,0.06);margin:10px 0;">
-        <div style="font-size:12px;color:rgba(255,255,255,0.4);line-height:2;">
-          <div>Words: <strong style="color:#fff;">{ats['word_count']}</strong></div>
-          <div>Sections: <strong style="color:#fff;">{ats['sections']}</strong></div>
-          <div>Keywords: <strong style="color:#fff;">{ats['kw_hits']}</strong></div>
-          <div>Bullets: <strong style="color:#fff;">{ats['bullets']}</strong></div>
-          <div>Certs: <strong style="color:#fff;">{ats['cert_hits']}</strong></div>
-        </div>"""))
-
-    with bc:
-        checks=[("Email address",ats["has_email"]),("Phone number",ats["has_phone"]),
-                ("LinkedIn profile",ats["has_linkedin"]),("GitHub / portfolio",ats["has_github"]),
-                ("Ideal length (300-1000w)",ats["length_ok"]),("Section headers (3+)",ats["sections"]>=3),
-                ("Action keywords (5+)",ats["kw_hits"]>=5),("Bullet points (5+)",ats["bullets"]>=5),
-                ("Certifications listed",ats["cert_hits"]>0)]
-        st.html(xcard(f"""
-        <div style="font-size:10px;color:rgba(255,255,255,0.3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px;">Full checklist</div>
-        {"".join(ats_row(l,o) for l,o in checks)}
-        """, glow="rgba(77,166,255,0.06)"))
-
-    st.markdown("#### Transparent ATS Score")
-    st.html(xcard(ats_breakdown_html(ats_breakdown), glow="rgba(94,255,216,0.05)"))
+    render_ats_report(ats, tech_skills)
 
     with st.expander("Raw resume text (first 2500 chars)"):
         st.text_area("", value=resume_text[:2500], height=280, disabled=True)
 
-    report = {
-        "file": uploaded_file.name,
-        "scores": scores,
+# ------------------------------------------------------------------------------------------------
+# CHAT ASSISTANT
+# ------------------------------------------------------------------------------------------------
+elif "💬 Chat Assistant" in page:
+    # Build complete resume context for the AI
+    resume_context = {
+        "text": resume_text[:5000],
+        "name": ats.get("name", ""),
+        "email": ats.get("email", ""),
+        "phone": ats.get("phone", ""),
+        "skills": tech_skills + soft_skills,
+        "experience": ats.get("experience_years", 0),
+        "education": ats.get("education", []),
+        "certs": ats.get("certifications", []),
         "predicted_role": prediction,
-        "target_role": active_role if target_role else "",
-        "confidence": round(confidence,1),
-        "tech_skills": tech_skills,
-        "soft_skills": soft_skills,
         "skill_gaps": gap,
-        "role_recommendations": role_recommendations,
-        "project_recommendations": project_recommendations,
-        "ats": {k:(bool(v) if isinstance(v,bool) else v) for k,v in ats.items()},
-        "ats_score_breakdown": ats_breakdown,
+        "ats_score": ats_score_breakdown(tech_skills, ats)["score"],
+        "job_matches": top_jobs.to_dict('records')[:3] if not top_jobs.empty else []
     }
-    st.download_button("Download report (JSON)", data=json.dumps(report,indent=2),
-                       file_name="careerai_report.json", mime="application/json")
+    render_chat(resume_context)
+
+# ------------------------------------------------------------------------------------------------
+# MOCK INTERVIEW
+# ------------------------------------------------------------------------------------------------
+elif "🎤 Mock Interview" in page:
+    # Build complete resume context for the AI
+    resume_context = {
+        "text": resume_text[:5000],
+        "name": ats.get("name", ""),
+        "skills": tech_skills + soft_skills,
+        "experience": ats.get("experience_years", 0),
+        "education": ats.get("education", []),
+        "certs": ats.get("certifications", []),
+        "ats_score": ats_score_breakdown(tech_skills, ats)["score"],
+        "predicted_role": prediction,
+        "skill_gaps": gap,
+    }
+    render_mock_interview(resume_context)
 
 
 
