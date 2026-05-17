@@ -1,0 +1,55 @@
+<style>
+  #bg-canvas{position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:0;pointer-events:none;}
+  .aurora{position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:0;pointer-events:none;overflow:hidden;}
+  .aurora-blob{position:absolute;border-radius:50%;filter:blur(110px);opacity:.18;animation:drift 18s ease-in-out infinite alternate;}
+  .aurora-blob:nth-child(1){width:700px;height:700px;background:radial-gradient(circle,#5effd8,transparent 70%);top:-10%;left:-5%;animation-duration:20s;}
+  .aurora-blob:nth-child(2){width:600px;height:600px;background:radial-gradient(circle,#4da6ff,transparent 70%);top:30%;right:-8%;animation-duration:25s;animation-delay:-8s;}
+  .aurora-blob:nth-child(3){width:500px;height:500px;background:radial-gradient(circle,#a78bfa,transparent 70%);bottom:-5%;left:30%;animation-duration:22s;animation-delay:-4s;}
+  @keyframes drift{0%{transform:translate(0,0) scale(1);}50%{transform:translate(40px,-30px) scale(1.08);}100%{transform:translate(-20px,20px) scale(.96);}}
+</style>
+<div class="aurora">
+  <div class="aurora-blob"></div>
+  <div class="aurora-blob"></div>
+  <div class="aurora-blob"></div>
+</div>
+<canvas id="bg-canvas"></canvas>
+<script>
+(function(){
+  const c=document.getElementById('bg-canvas');
+  const ctx=c.getContext('2d');
+  let W,H,pts=[];
+  function resize(){W=c.width=window.innerWidth;H=c.height=window.innerHeight;}
+  resize();window.addEventListener('resize',resize);
+  function mkPts(){
+    pts=[];
+    const N=Math.floor(W*H/14000);
+    for(let i=0;i<N;i++)pts.push({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*.35,vy:(Math.random()-.5)*.35,r:Math.random()*1.6+.4});
+  }
+  mkPts();
+  const COLS=['rgba(94,255,216,.7)','rgba(77,166,255,.6)','rgba(167,139,250,.55)'];
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    // grid
+    ctx.strokeStyle='rgba(94,255,216,0.028)';ctx.lineWidth=1;
+    for(let x=0;x<W;x+=38){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+    for(let y=0;y<H;y+=38){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+    // connections
+    for(let i=0;i<pts.length;i++){
+      for(let j=i+1;j<pts.length;j++){
+        const dx=pts[i].x-pts[j].x,dy=pts[i].y-pts[j].y,d=Math.sqrt(dx*dx+dy*dy);
+        if(d<120){ctx.strokeStyle=`rgba(94,255,216,${.12*(1-d/120)})`;ctx.lineWidth=.6;ctx.beginPath();ctx.moveTo(pts[i].x,pts[i].y);ctx.lineTo(pts[j].x,pts[j].y);ctx.stroke();}
+      }
+    }
+    // dots
+    pts.forEach((p,i)=>{
+      ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=COLS[i%3];ctx.fill();
+      p.x+=p.vx;p.y+=p.vy;
+      if(p.x<0||p.x>W)p.vx*=-1;
+      if(p.y<0||p.y>H)p.vy*=-1;
+    });
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+</script>

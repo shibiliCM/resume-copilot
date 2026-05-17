@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CareerAI Presentation Documentation</title>
+  <style>
+    :root{
+      --bg:#07111f;
+      --panel:#0d1a2e;
+      --panel2:#111f35;
+      --text:#edf8ff;
+      --muted:#9fb2c7;
+      --teal:#5effd8;
+      --blue:#4da6ff;
+      --violet:#a78bfa;
+      --amber:#ffd166;
+      --red:#ff6b7a;
+      --line:rgba(255,255,255,.12);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      background:
+        radial-gradient(circle at 10% 0%,rgba(94,255,216,.10),transparent 28%),
+        radial-gradient(circle at 92% 8%,rgba(77,166,255,.12),transparent 30%),
+        var(--bg);
+      color:var(--text);
+      font:15px/1.65 "Segoe UI",Arial,sans-serif;
+    }
+    .page{max-width:1180px;margin:0 auto;padding:44px 28px 80px}
+    .hero{
+      border:1px solid rgba(94,255,216,.18);
+      background:linear-gradient(135deg,rgba(94,255,216,.08),rgba(77,166,255,.06),rgba(167,139,250,.05));
+      border-radius:24px;
+      padding:34px;
+      overflow:hidden;
+      position:relative;
+    }
+    h1,h2,h3{font-family:"Segoe UI",Arial,sans-serif;line-height:1.15;margin:0 0 12px}
+    h1{font-size:44px;letter-spacing:.01em}
+    h2{font-size:26px;margin-top:36px;color:#fff}
+    h3{font-size:18px;color:var(--teal);margin-top:22px}
+    p{color:var(--muted);margin:8px 0 14px}
+    strong{color:#fff}
+    .tag{display:inline-flex;gap:6px;align-items:center;border:1px solid rgba(94,255,216,.24);background:rgba(94,255,216,.08);color:var(--teal);border-radius:999px;padding:6px 10px;font-weight:700;font-size:12px;margin:4px 6px 4px 0}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px}
+    .card{
+      background:linear-gradient(180deg,rgba(255,255,255,.045),rgba(255,255,255,.025));
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:20px;
+      box-shadow:0 18px 50px rgba(0,0,0,.24);
+    }
+    .metric{font-size:32px;font-weight:900;color:var(--teal);line-height:1}
+    .muted{color:var(--muted);font-size:13px}
+    .flow{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:18px 0}
+    .step{
+      min-width:145px;
+      flex:1 1 145px;
+      border:1px solid rgba(94,255,216,.18);
+      background:rgba(94,255,216,.055);
+      border-radius:14px;
+      padding:13px;
+      text-align:center;
+      font-weight:800;
+    }
+    .arrow{color:var(--amber);font-weight:900;font-size:22px}
+    table{width:100%;border-collapse:collapse;margin:14px 0;border:1px solid var(--line);border-radius:14px;overflow:hidden}
+    th,td{padding:12px 14px;text-align:left;border-bottom:1px solid rgba(255,255,255,.08);vertical-align:top}
+    th{background:rgba(77,166,255,.10);color:#fff}
+    td{color:var(--muted)}
+    code{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:2px 6px;color:var(--teal)}
+    .formula{
+      border:1px solid rgba(94,255,216,.24);
+      background:rgba(94,255,216,.06);
+      border-radius:18px;
+      padding:18px;
+      font-size:20px;
+      font-weight:900;
+      text-align:center;
+      color:#fff;
+    }
+    .bar{height:10px;background:rgba(255,255,255,.08);border-radius:99px;overflow:hidden;margin-top:8px}
+    .fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--teal),var(--blue))}
+    .picture{
+      margin-top:22px;
+      border:1px solid rgba(255,255,255,.10);
+      border-radius:20px;
+      overflow:hidden;
+      background:#091528;
+    }
+    .callout{border-left:4px solid var(--amber);padding:12px 16px;background:rgba(255,209,102,.07);border-radius:12px;margin:14px 0;color:#d5e4f4}
+    .print-note{font-size:12px;color:#7890aa;margin-top:28px}
+    @media print{
+      body{background:#fff;color:#111}
+      .page{padding:20px;max-width:none}
+      .card,.hero{break-inside:avoid;background:#fff;color:#111;border-color:#ddd;box-shadow:none}
+      p,td,.muted{color:#333}
+      h1,h2,h3,strong{color:#111}
+      .tag,.formula,.step{border-color:#ddd;background:#f5f7fa;color:#111}
+    }
+  </style>
+</head>
+<body>
+<main class="page">
+  <section class="hero">
+    <div class="tag">Resume Intelligence</div>
+    <div class="tag">ATS Scoring</div>
+    <div class="tag">Model Comparison</div>
+    <h1>CareerAI Presentation Documentation</h1>
+    <p>
+      CareerAI analyzes a resume PDF, predicts the most suitable job role, compares jobs semantically,
+      calculates an explainable ATS score, and recommends role-specific improvements and projects.
+    </p>
+    <div class="picture" aria-label="CareerAI system picture">
+      <svg viewBox="0 0 1100 380" width="100%" height="auto" role="img">
+        <defs>
+          <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#5effd8" stop-opacity=".25"/>
+            <stop offset="1" stop-color="#4da6ff" stop-opacity=".18"/>
+          </linearGradient>
+          <filter id="glow"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L9,3 z" fill="#ffd166"/>
+          </marker>
+        </defs>
+        <rect width="1100" height="380" fill="#091528"/>
+        <rect x="46" y="56" width="170" height="96" rx="18" fill="url(#g1)" stroke="#5effd8" stroke-opacity=".35"/>
+        <text x="131" y="94" text-anchor="middle" fill="#fff" font-size="20" font-weight="800">PDF Resume</text>
+        <text x="131" y="124" text-anchor="middle" fill="#9fb2c7" font-size="13">Uploaded file</text>
+        <line x1="216" y1="104" x2="300" y2="104" stroke="#ffd166" stroke-width="4" marker-end="url(#arrow)"/>
+        <rect x="302" y="56" width="170" height="96" rx="18" fill="url(#g1)" stroke="#4da6ff" stroke-opacity=".35"/>
+        <text x="387" y="94" text-anchor="middle" fill="#fff" font-size="20" font-weight="800">Extract Text</text>
+        <text x="387" y="124" text-anchor="middle" fill="#9fb2c7" font-size="13">pdfplumber + fallback</text>
+        <line x1="472" y1="104" x2="556" y2="104" stroke="#ffd166" stroke-width="4" marker-end="url(#arrow)"/>
+        <rect x="558" y="56" width="170" height="96" rx="18" fill="url(#g1)" stroke="#a78bfa" stroke-opacity=".38"/>
+        <text x="643" y="94" text-anchor="middle" fill="#fff" font-size="20" font-weight="800">Clean + TF-IDF</text>
+        <text x="643" y="124" text-anchor="middle" fill="#9fb2c7" font-size="13">Normalize text</text>
+        <line x1="728" y1="104" x2="812" y2="104" stroke="#ffd166" stroke-width="4" marker-end="url(#arrow)"/>
+        <rect x="814" y="56" width="236" height="96" rx="18" fill="url(#g1)" stroke="#5effd8" stroke-opacity=".35"/>
+        <text x="932" y="88" text-anchor="middle" fill="#fff" font-size="20" font-weight="800">Role Prediction</text>
+        <text x="932" y="118" text-anchor="middle" fill="#9fb2c7" font-size="13">Classifier output</text>
+        <rect x="164" y="226" width="210" height="90" rx="18" fill="#101f35" stroke="#5effd8" stroke-opacity=".32"/>
+        <text x="269" y="263" text-anchor="middle" fill="#fff" font-size="19" font-weight="800">ATS Score</text>
+        <text x="269" y="291" text-anchor="middle" fill="#9fb2c7" font-size="13">Keywords + skills + format</text>
+        <rect x="445" y="226" width="210" height="90" rx="18" fill="#101f35" stroke="#4da6ff" stroke-opacity=".32"/>
+        <text x="550" y="263" text-anchor="middle" fill="#fff" font-size="19" font-weight="800">Job Matching</text>
+        <text x="550" y="291" text-anchor="middle" fill="#9fb2c7" font-size="13">Cosine similarity</text>
+        <rect x="726" y="226" width="210" height="90" rx="18" fill="#101f35" stroke="#a78bfa" stroke-opacity=".32"/>
+        <text x="831" y="263" text-anchor="middle" fill="#fff" font-size="19" font-weight="800">Recommendations</text>
+        <text x="831" y="291" text-anchor="middle" fill="#9fb2c7" font-size="13">Projects + gaps</text>
+        <line x1="932" y1="152" x2="831" y2="226" stroke="#ffd166" stroke-width="4" marker-end="url(#arrow)"/>
+        <line x1="643" y1="152" x2="550" y2="226" stroke="#ffd166" stroke-width="4" marker-end="url(#arrow)"/>
+        <line x1="387" y1="152" x2="269" y2="226" stroke="#ffd166" stroke-width="4" marker-end="url(#arrow)"/>
+      </svg>
+    </div>
+  </section>
+
+  <h2>1. Project Objective</h2>
+  <div class="card">
+    <p>
+      The goal of CareerAI is to help a job seeker understand how strong their resume is for a target
+      role. The system gives a predicted role, detects skills, finds missing role skills, compares
+      job descriptions, calculates an ATS score, and suggests real portfolio projects.
+    </p>
+  </div>
+
+  <h2>2. Methodology Pipeline</h2>
+  <div class="flow">
+    <div class="step">PDF Upload</div><div class="arrow">&rarr;</div>
+    <div class="step">Text Extraction</div><div class="arrow">&rarr;</div>
+    <div class="step">Cleaning</div><div class="arrow">&rarr;</div>
+    <div class="step">Skill Detection</div><div class="arrow">&rarr;</div>
+    <div class="step">Prediction</div><div class="arrow">&rarr;</div>
+    <div class="step">Matching</div><div class="arrow">&rarr;</div>
+    <div class="step">ATS Scoring</div><div class="arrow">&rarr;</div>
+    <div class="step">Recommendations</div>
+  </div>
+  <table>
+    <tr><th>Stage</th><th>What happens</th><th>Why it matters</th></tr>
+    <tr><td>PDF upload</td><td>User uploads a resume PDF.</td><td>Starts analysis from the real document.</td></tr>
+    <tr><td>Text extraction</td><td>Text is extracted using pdfplumber plus a fallback for tagged PDFs.</td><td>Prevents blank analysis when PDFs are generated by design tools.</td></tr>
+    <tr><td>Cleaning</td><td>Text is lowercased and symbols/noise are removed.</td><td>Makes prediction and matching more consistent.</td></tr>
+    <tr><td>Skill detection</td><td>Technical and soft skills are found using keyword aliases.</td><td>Shows what the resume proves and what is missing.</td></tr>
+    <tr><td>Prediction</td><td>TF-IDF features are passed to a classifier to predict role category.</td><td>Gives the system a career direction.</td></tr>
+    <tr><td>Matching</td><td>Resume and job descriptions are compared with cosine similarity.</td><td>Finds jobs that are semantically close to the resume.</td></tr>
+    <tr><td>ATS scoring</td><td>Weighted formula checks keywords, skill coverage, and formatting.</td><td>Makes the score explainable and actionable.</td></tr>
+    <tr><td>Recommendations</td><td>Gaps, target role, and job matches drive project suggestions.</td><td>Turns analysis into practical next steps.</td></tr>
+  </table>
+
+  <h2>3. EDA Section</h2>
+  <div class="grid">
+    <div class="card"><div class="metric">2484</div><strong>Resume records</strong><p>Total dataset rows used for analysis and model evaluation.</p></div>
+    <div class="card"><div class="metric" style="color:var(--blue)">24</div><strong>Job role classes</strong><p>Different resume categories in the dataset.</p></div>
+    <div class="card"><div class="metric" style="color:var(--amber)">Top role</div><strong>Most frequent class</strong><p>Shows which category appears most often in the dataset.</p></div>
+  </div>
+  <p>
+    The EDA graphs show top skill frequency, job role distribution, and a word cloud. Larger words in
+    the word cloud appear more frequently in the dataset. Common non-skill words such as city, state,
+    or name can be filtered later for cleaner insight.
+  </p>
+
+  <h2>4. Model Performance Comparison</h2>
+  <div class="card">
+    <p>
+      The app now trains and compares two classic text-classification models using the same train/test split:
+      <strong>Logistic Regression</strong> and <strong>Naive Bayes</strong>.
+    </p>
+    <table>
+      <tr><th>Model</th><th>Strength</th><th>Weakness</th><th>Why compare it?</th></tr>
+      <tr>
+        <td>Logistic Regression</td>
+        <td>Strong baseline for sparse TF-IDF text features.</td>
+        <td>Can be slower than Naive Bayes on very large data.</td>
+        <td>Often performs well for resume/job text classification.</td>
+      </tr>
+      <tr>
+        <td>Naive Bayes</td>
+        <td>Fast and simple probabilistic text classifier.</td>
+        <td>Assumes word independence, which is not always true.</td>
+        <td>Useful baseline to compare speed and accuracy.</td>
+      </tr>
+    </table>
+    <div class="callout">
+      Presentation line: "Both models are trained on the same cleaned resume text and TF-IDF vectors.
+      We compare accuracy, precision, recall, F1 score, and confusion matrix to select the better model."
+    </div>
+  </div>
+
+  <h2>5. ATS Score Definition</h2>
+  <div class="formula">
+    ATS Score = Keyword Match x 40% + Skill Coverage x 30% + Formatting Rules x 30%
+  </div>
+  <div class="grid" style="margin-top:16px">
+    <div class="card"><strong>Keyword Match - 40%</strong><p>Counts action words and ATS-friendly keywords such as built, managed, implemented, improved, and optimized.</p><div class="bar"><div class="fill" style="width:40%"></div></div></div>
+    <div class="card"><strong>Skill Coverage - 30%</strong><p>Checks how many technical skills are detected in the resume, such as Python, SQL, Excel, machine learning, or cloud tools.</p><div class="bar"><div class="fill" style="width:30%"></div></div></div>
+    <div class="card"><strong>Formatting Rules - 30%</strong><p>Checks contact details, LinkedIn/GitHub, resume length, sections, bullets, and certification signals.</p><div class="bar"><div class="fill" style="width:30%"></div></div></div>
+  </div>
+  <p>
+    This score is transparent because each component shows evidence and contribution. The user can see
+    exactly why they got the score and how to improve it.
+  </p>
+
+  <h2>6. Presentation Script</h2>
+  <div class="card">
+    <p><strong>Opening:</strong> "CareerAI is a resume intelligence platform that analyzes a PDF resume and gives role prediction, ATS score, job matching, and improvement recommendations."</p>
+    <p><strong>Method:</strong> "The system follows a clear pipeline: PDF to text extraction, cleaning, skill detection, prediction, job matching, ATS scoring, and recommendations."</p>
+    <p><strong>EDA:</strong> "Before modeling, we inspect the dataset using top skill frequency, job role distribution, and word cloud."</p>
+    <p><strong>Model comparison:</strong> "We train Logistic Regression and Naive Bayes on the same split and compare accuracy, precision, recall, F1, and confusion matrix."</p>
+    <p><strong>ATS:</strong> "The ATS score is explainable: 40% keyword match, 30% skill coverage, and 30% formatting rules."</p>
+    <p><strong>Conclusion:</strong> "The system does not only predict a role; it explains gaps and gives practical projects to help the user reach the target role."</p>
+  </div>
+
+  <h2>7. Limitations and Future Work</h2>
+  <table>
+    <tr><th>Limitation</th><th>Improvement</th></tr>
+    <tr><td>Some PDFs may not extract perfectly.</td><td>Add OCR support for scanned resumes.</td></tr>
+    <tr><td>Word cloud can include generic words.</td><td>Add stronger stop-word filtering and named-entity removal.</td></tr>
+    <tr><td>Keyword skill detection can miss unusual wording.</td><td>Add NLP phrase extraction or embedding-based skill matching.</td></tr>
+    <tr><td>ATS score is a custom explainable formula.</td><td>Validate weights using recruiter feedback and real ATS outcomes.</td></tr>
+  </table>
+
+  <p class="print-note">
+    To download as PDF: open this HTML file in a browser, press Ctrl+P, choose "Save as PDF", and print.
+  </p>
+</main>
+</body>
+</html>
