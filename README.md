@@ -73,10 +73,3 @@ For custom hosting, a production-ready `Dockerfile` is provided in the repositor
 
 ---
 
-## ⚠️ Important Note on Vercel Deployment
-
-**Vercel is not recommended for stateful Streamlit applications.**
-
-Streamlit requires a persistent, long-running WebSocket connection to coordinate state updates between the Python server and the browser. Vercel is built for **serverless** (stateless, short-lived executions with request limits). Running Streamlit on Vercel will result in frequent WebSocket disconnects, timeout errors, and lost session data.
-
-For a completely free and professional cloud setup, we strongly recommend deploying to **Streamlit Community Cloud**.
