@@ -1,0 +1,32 @@
+# Streamlit secrets (CRITICAL: Do not upload API keys to GitHub!)
+.streamlit/secrets.toml
+.streamlit/config.toml
+
+# Python virtual environments & dependencies
+.venv/
+venv/
+env/
+bin/
+lib/
+include/
+
+# Python caches & compile files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Workspace / IDE configs
+.vscode/
+.idea/
+.codex/

@@ -142,12 +142,15 @@ def _extract_experience_years(text: str) -> float:
 def _extract_portfolio(text: str, email: str | None) -> str | None:
     email_domain = email.split("@", 1)[1].lower() if email and "@" in email else ""
     candidates = re.findall(
-        r"(?:https?://)?(?:www\.)?(?!(?:linkedin|github)\.com\b)[A-Za-z0-9][A-Za-z0-9_-]*\.(?:com|net|org|io|dev|me|app)(?:/[^\s)\]]*)?",
+        r"(?:https?://)?(?:www\.)?[A-Za-z0-9][A-Za-z0-9_.-]*\.[A-Za-z]{2,}(?:/[^\s)\]]*)?",
         text,
         re.IGNORECASE,
     )
     for candidate in candidates:
         cleaned = candidate.strip(" .,:;)")
+        lower_cand = cleaned.lower()
+        if "linkedin.com" in lower_cand or "github.com" in lower_cand:
+            continue
         domain = re.sub(r"^https?://", "", cleaned, flags=re.IGNORECASE).removeprefix("www.").split("/", 1)[0].lower()
         if domain == email_domain or domain in COMMON_EMAIL_DOMAINS:
             continue
@@ -155,12 +158,45 @@ def _extract_portfolio(text: str, email: str | None) -> str | None:
     return None
 
 
+def _extract_phone(text: str) -> str | None:
+    candidates = re.findall(r"(?:\+\d{1,3}[\s.-]?)?(?:\(?\d{2,4}\)?[\s.-]?){2,5}\d{2,4}", text)
+    # First pass: prioritize candidates starting with '+' or having >= 9 digits
+    for cand in candidates:
+        cand_clean = cand.strip(" .,:;)")
+        digits = re.sub(r"\D", "", cand_clean)
+        if (cand_clean.startswith("+") or len(digits) >= 9) and 7 <= len(digits) <= 15:
+            return cand_clean
+    # Second pass: fallback to any candidate with 7-15 digits
+    for cand in candidates:
+        cand_clean = cand.strip(" .,:;)")
+        digits = re.sub(r"\D", "", cand_clean)
+        if 7 <= len(digits) <= 15:
+            return cand_clean
+    return None
+
+
+def _merge_wrapped_links(text: str) -> str:
+    lines = text.splitlines()
+    i = 0
+    while i < len(lines) - 1:
+        current_line = lines[i].strip()
+        next_line = lines[i+1].strip()
+        if any(marker in current_line.lower() for marker in ("linkedin.com", "github.com", "http://", "https://")):
+            if next_line and re.match(r"^[A-Za-z0-9_%\-./]+$", next_line):
+                if next_line.lower() not in ("github", "email", "phone", "skills", "experience", "education"):
+                    lines[i] = current_line + next_line
+                    lines[i+1] = ""
+        i += 1
+    return "\n".join(lines)
+
+
 def parse_resume(pdf_bytes: bytes | BinaryIO) -> dict[str, Any]:
     text = _read_pdf_text(pdf_bytes)
+    text = _merge_wrapped_links(text)
     text_lower = text.lower()
 
     email = _first_match(r"[\w.+-]+@[\w-]+\.[a-z]{2,}", text)
-    phone = _first_match(r"(?:\+\d{1,3}[\s.-]?)?(?:\(?\d{2,4}\)?[\s.-]?){2,5}\d{2,4}", text)
+    phone = _extract_phone(text)
     linkedin = _first_match(r"(?:https?://)?(?:www\.)?linkedin\.com/in/[A-Za-z0-9_%\-./]+", text)
     github = _first_match(r"(?:https?://)?(?:www\.)?github\.com/[A-Za-z0-9_.%-]+", text)
     portfolio = _extract_portfolio(text, email)

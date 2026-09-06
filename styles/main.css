@@ -1,4 +1,4 @@
-﻿@import url('https://fonts.googleapis.com/css2?family=Clash+Display:wght@400;500;600;700&family=Cabinet+Grotesk:wght@300;400;500;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Clash+Display:wght@400;500;600;700&family=Cabinet+Grotesk:wght@300;400;500;700;800&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&display=swap');
 
 :root{
@@ -420,7 +420,7 @@ div[data-testid="stVerticalBlock"] > div:nth-child(4){animation-delay:.17s;}
 }
 
 /* â”€â”€ Sidebar nav radio â”€â”€ */
-div[data-testid="stRadio"] div[role="radiogroup"] label{
+section[data-testid="stSidebar"] div[data-testid="stRadio"] div[role="radiogroup"] label{
   padding:10px 12px !important;border-radius:12px !important;
   cursor:pointer !important;transition:all .24s ease !important;display:flex !important;
   align-items:center !important;gap:10px !important;
@@ -428,10 +428,10 @@ div[data-testid="stRadio"] div[role="radiogroup"] label{
   position:relative !important;
   min-height:42px !important;
 }
-div[data-testid="stRadio"] div[role="radiogroup"] label > div:first-child{
+section[data-testid="stSidebar"] div[data-testid="stRadio"] div[role="radiogroup"] label > div:first-child{
   display:none !important;
 }
-div[data-testid="stRadio"] div[role="radiogroup"] label::before{
+section[data-testid="stSidebar"] div[data-testid="stRadio"] div[role="radiogroup"] label::before{
   width:28px;height:28px;border-radius:10px;
   display:inline-flex;align-items:center;justify-content:center;
   font-size:9px;font-weight:800;letter-spacing:.02em;
@@ -441,28 +441,28 @@ div[data-testid="stRadio"] div[role="radiogroup"] label::before{
   box-shadow:inset 0 0 10px rgba(255,255,255,0.018);
   transition:transform .24s ease,background .24s ease,border-color .24s ease,box-shadow .24s ease;
 }
-div[data-testid="stRadio"] div[role="radiogroup"] label:nth-of-type(1)::before{content:'DB';color:#5effd8;}
-div[data-testid="stRadio"] div[role="radiogroup"] label:nth-of-type(2)::before{content:'AI';color:rgba(167,139,250,0.72);}
-div[data-testid="stRadio"] div[role="radiogroup"] label:nth-of-type(3)::before{content:'JOB';color:rgba(255,209,102,0.72);}
-div[data-testid="stRadio"] div[role="radiogroup"] label:nth-of-type(4)::before{content:'SK';color:rgba(77,166,255,0.72);}
-div[data-testid="stRadio"] div[role="radiogroup"] label:nth-of-type(5)::before{content:'ATS';color:rgba(255,107,122,0.72);}
-div[data-testid="stRadio"] div[role="radiogroup"] label:nth-of-type(6)::before{content:'IN';color:rgba(255,159,107,0.72);}
-div[data-testid="stRadio"] div[role="radiogroup"] label:hover{
+section[data-testid="stSidebar"] div[data-testid="stRadio"] div[role="radiogroup"] label:nth-of-type(1)::before{content:'DB';color:#5effd8;}
+section[data-testid="stSidebar"] div[data-testid="stRadio"] div[role="radiogroup"] label:nth-of-type(2)::before{content:'AI';color:rgba(167,139,250,0.72);}
+section[data-testid="stSidebar"] div[data-testid="stRadio"] div[role="radiogroup"] label:nth-of-type(3)::before{content:'JOB';color:rgba(255,209,102,0.72);}
+section[data-testid="stSidebar"] div[data-testid="stRadio"] div[role="radiogroup"] label:nth-of-type(4)::before{content:'SK';color:rgba(77,166,255,0.72);}
+section[data-testid="stSidebar"] div[data-testid="stRadio"] div[role="radiogroup"] label:nth-of-type(5)::before{content:'ATS';color:rgba(255,107,122,0.72);}
+section[data-testid="stSidebar"] div[data-testid="stRadio"] div[role="radiogroup"] label:nth-of-type(6)::before{content:'IN';color:rgba(255,159,107,0.72);}
+section[data-testid="stSidebar"] div[data-testid="stRadio"] div[role="radiogroup"] label:hover{
   background:rgba(94,255,216,0.08) !important;color:#5effd8 !important;
   transform:translateX(3px);
 }
-div[data-testid="stRadio"] div[role="radiogroup"] label:hover::before{
+section[data-testid="stSidebar"] div[data-testid="stRadio"] div[role="radiogroup"] label:hover::before{
   transform:translateY(-2px) scale(1.06);
   border-color:rgba(94,255,216,0.28);
   box-shadow:0 0 10px rgba(94,255,216,0.08);
 }
-div[data-testid="stRadio"] div[role="radiogroup"] label:has(input:checked){
+section[data-testid="stSidebar"] div[data-testid="stRadio"] div[role="radiogroup"] label:has(input:checked){
   background:rgba(94,255,216,0.075) !important;
   border-left:2px solid var(--teal) !important;
   color:var(--text) !important;
   animation:navSelect .38s ease both;
 }
-div[data-testid="stRadio"] div[role="radiogroup"] label:has(input:checked)::before{
+section[data-testid="stSidebar"] div[data-testid="stRadio"] div[role="radiogroup"] label:has(input:checked)::before{
   background:rgba(94,255,216,0.075);
   border-color:rgba(94,255,216,0.38);
   box-shadow:0 0 12px rgba(94,255,216,0.10);

@@ -26,6 +26,8 @@ from utils.theme import inject_theme
 from components.ats_report import render_ats_report
 from components.chat import render_chat
 from components.mock_interview import render_mock_interview
+from utils.llm import _friendly_api_error
+
 
 # ------------------------------------------------------------------------------------------------
 # PAGE CONFIG
@@ -669,7 +671,7 @@ def call_gemini_api(prompt: str) -> str:
     if not api_key:
         return "Add a GEMINI_API_KEY from Google AI Studio, then try again."
 
-    model = get_config_value("GEMINI_MODEL", "gemini-2.5-flash")
+    model = get_config_value("GEMINI_MODEL", "gemini-3.5-flash")
     payload = json.dumps({
         "contents": [{"role": "user", "parts": [{"text": prompt}]}],
         "generationConfig": {"temperature": 0.7, "maxOutputTokens": 1000},
@@ -687,7 +689,7 @@ def call_gemini_api(prompt: str) -> str:
             return "\n".join(part.get("text", "") for part in parts).strip()
     except urllib.error.HTTPError as e:
         details = e.read().decode("utf-8", errors="ignore")
-        return f"Gemini API error {e.code}: {details or e.reason}"
+        return _friendly_api_error("Gemini", e.code, details or e.reason)
     except urllib.error.URLError as e:
         return f"Could not reach Gemini API: {e.reason}"
     except Exception as e:
@@ -725,7 +727,7 @@ def call_chatgpt_api(prompt: str) -> str:
             return data["choices"][0]["message"]["content"].strip()
     except urllib.error.HTTPError as e:
         details = e.read().decode("utf-8", errors="ignore")
-        return f"ChatGPT API error {e.code}: {details or e.reason}"
+        return _friendly_api_error("ChatGPT", e.code, details or e.reason)
     except urllib.error.URLError as e:
         return f"Could not reach ChatGPT/OpenAI endpoint: {e.reason}"
     except Exception as e:
@@ -1661,10 +1663,8 @@ with st.sidebar:
 
     if "theme" not in st.session_state:
         st.session_state.theme = "dark"
-    if st.button("🌙/☀️ Toggle Theme", use_container_width=True):
-        st.session_state.theme = "light" if st.session_state.theme == "dark" else "dark"
 
-    page = st.radio("", ["Dashboard","AI Coaches","Job Matches","Skill Analysis","ATS Report", "💬 Chat Assistant", "🎤 Mock Interview", "Insights"], label_visibility="collapsed")
+    page = st.radio("Navigation", ["Dashboard","AI Coaches","Job Matches","Skill Analysis","ATS Report", "💬 Chat Assistant", "🎤 Mock Interview", "Insights"], label_visibility="collapsed")
 
     st.markdown("<br>", unsafe_allow_html=True)
 
@@ -2013,10 +2013,34 @@ elif "AI Coaches" in page:
                             projects=project_recommendations,
                         )
                         response_text = call_ai_provider(p["provider"], prompt)
-                        st.session_state["ai_responses"][p["id"]] = response_text
                         response_lower = response_text.lower()
                         error_markers = ("api error", "coaching error", "could not", "add ")
-                        st.session_state["ai_status"][p["id"]] = "error" if response_lower.startswith(error_markers) or any(marker in response_lower for marker in error_markers[:2]) else "ready"
+                        is_error = response_lower.startswith(error_markers) or any(marker in response_lower for marker in error_markers[:2])
+                        
+                        if is_error:
+                            fallback_p = "chatgpt" if p["provider"] == "gemini" else "gemini"
+                            if provider_ready(fallback_p):
+                                fallback_res = call_ai_provider(fallback_p, prompt)
+                                fallback_res_lower = fallback_res.lower()
+                                if not (fallback_res_lower.startswith(error_markers) or any(marker in fallback_res_lower for marker in error_markers[:2])):
+                                    response_text = fallback_res
+                                    is_error = False
+                                    
+                        if is_error:
+                            st.session_state["ai_responses"][p["id"]] = local_coaching_response(
+                                persona=p["name"],
+                                role=active_role,
+                                tech=tech_skills,
+                                soft=soft_skills,
+                                score=scores["overall"],
+                                gap=gap,
+                                tone_note=p["tone"],
+                                projects=project_recommendations,
+                            )
+                            st.session_state["ai_status"][p["id"]] = "local"
+                        else:
+                            st.session_state["ai_responses"][p["id"]] = response_text
+                            st.session_state["ai_status"][p["id"]] = "ready"
                     else:
                         st.session_state["ai_responses"][p["id"]] = local_coaching_response(
                             persona=p["name"],
@@ -2222,7 +2246,7 @@ elif "ATS Report" in page:
     render_ats_report(ats, tech_skills)
 
     with st.expander("Raw resume text (first 2500 chars)"):
-        st.text_area("", value=resume_text[:2500], height=280, disabled=True)
+        st.text_area("Raw text", value=resume_text[:2500], height=280, disabled=True, label_visibility="collapsed")
 
 # ------------------------------------------------------------------------------------------------
 # CHAT ASSISTANT

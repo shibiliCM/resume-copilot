@@ -24,20 +24,11 @@ def _as_url(value: str | None, kind: str = "url") -> str | None:
 def _link_card(label: str, value: str | None, kind: str = "url") -> str:
     href = _as_url(value, kind)
     if not value or not href:
-        return f"""
-        <div class="careerai-link-card missing">
-          <span>{html.escape(label)}</span>
-          <strong>Missing</strong>
-        </div>
-        """
+        return f'<div class="careerai-link-card missing"><span>{html.escape(label)}</span><strong>Missing</strong></div>'
     safe_value = html.escape(value)
     safe_href = html.escape(href, quote=True)
-    return f"""
-    <a class="careerai-link-card" href="{safe_href}" target="_blank" rel="noopener noreferrer">
-      <span>{html.escape(label)}</span>
-      <strong>{safe_value}</strong>
-    </a>
-    """
+    return f'<a class="careerai-link-card" href="{safe_href}" target="_blank" rel="noopener noreferrer"><span>{html.escape(label)}</span><strong>{safe_value}</strong></a>'
+
 
 
 def calculate_ats_score(resume_data: dict[str, Any], tech_skills: list[str]) -> dict[str, Any]:
@@ -117,21 +108,18 @@ def render_ats_report(resume_data: dict[str, Any], tech_skills: list[str]) -> No
         )
 
     with col_links:
+        links_html = "".join([
+            _link_card("Email", resume_data.get("email"), "email"),
+            _link_card("Phone", resume_data.get("phone"), "phone"),
+            _link_card("LinkedIn", resume_data.get("linkedin")),
+            _link_card("GitHub", resume_data.get("github")),
+            _link_card("Portfolio", resume_data.get("portfolio")),
+        ])
         st.markdown(
-            f"""
-            <div class="careerai-panel">
-              <h3>Clickable Links</h3>
-              <div class="careerai-link-grid">
-                {_link_card("Email", resume_data.get("email"), "email")}
-                {_link_card("Phone", resume_data.get("phone"), "phone")}
-                {_link_card("LinkedIn", resume_data.get("linkedin"))}
-                {_link_card("GitHub", resume_data.get("github"))}
-                {_link_card("Portfolio", resume_data.get("portfolio"))}
-              </div>
-            </div>
-            """,
+            f'<div class="careerai-panel"><h3>Clickable Links</h3><div class="careerai-link-grid">{links_html}</div></div>',
             unsafe_allow_html=True,
         )
+
 
     col_checks, col_certs = st.columns(2)
 
